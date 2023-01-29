@@ -8,7 +8,7 @@ const passport = require("passport");
 const cookieSession = require("cookie-session");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const User = require("./models/User");
-
+const authRoute = require("./routes/auth");
 connectDB();
 app.use(
   cookieSession({
@@ -27,21 +27,22 @@ app.use(
     credentials: true,
   })
 );
-
+app.use("/auth", authRoute);
 passport.use(
   new GoogleStrategy(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/redirect",
+      callbackURL: "/auth/google/callback",
     },
-    function (accessToken, refreshToken, profile, cb) {
+    function (accessToken, refreshToken, profile, done) {
       //if use mongoDB
       // const user = {
       //   username: profile.displayName,
       //   avatar: profile.photo[0],
       // }
       // User.create({})
+      done(null, profile);
     }
   )
 );
