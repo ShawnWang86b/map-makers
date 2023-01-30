@@ -1,6 +1,13 @@
 import { Box, Flex, Button, Input } from "@chakra-ui/react";
 import { AiOutlineGoogle, AiFillGithub, AiFillFacebook } from "react-icons/ai";
 const Login = () => {
+  const handleGoogleLogin = () =>{
+    window.open("http://localhost:5000/auth/google", "_self");
+  }
+
+  const handleGithubLogin = () =>{
+    window.open("http://localhost:5000/auth/github", "_self");
+  }
   return (
     <Box
       display="flex"
@@ -21,6 +28,7 @@ const Login = () => {
           backgroundColor="red.400"
           variant="solid"
           _hover={{ backgroundColor: "red.500" }}
+          onClick={handleGoogleLogin}
         >
           Google
         </Button>
@@ -38,6 +46,7 @@ const Login = () => {
           color="white"
           variant="solid"
           _hover={{ backgroundColor: "#2b2727" }}
+          onClick={handleGithubLogin}
         >
           Github
         </Button>

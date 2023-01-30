@@ -2,8 +2,11 @@ import { Flex, Container, Button } from "@chakra-ui/react";
 import { navigate } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({user}) => {
   const navigate = useNavigate();
+  const logout = () => {
+    window.open("http://localhost:5000/auth/logout", "_self");
+  };
   return (
     <Flex backgroundColor="#92BCBA" padding="10px">
       <Container
@@ -23,22 +26,29 @@ const Navbar = () => {
         >
           LuluHome
         </Flex>
-        <Flex gap="20px">
+       {user?
+        (<Flex gap="20px">
+          <Image  src={user.photos[0].value}
+              alt=""/>
           <Button
             backgroundColor="#92BCBA"
             color="#FFFFFF"
             _hover={{ backgroundColor: "#92BCBA" }}
           >
-            Shawn
+            {user.displayName}
           </Button>
           <Button
             backgroundColor="#92BCBA"
             color="#FFFFFF"
             _hover={{ backgroundColor: "#92BCBA" }}
+            onClick={logout}
           >
-            Sign out
+            Logout
           </Button>
-        </Flex>
+        </Flex>):(<Link to='login'>
+          Login
+        </Link>)}
+
       </Container>
     </Flex>
   );
