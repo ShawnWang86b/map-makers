@@ -24,6 +24,7 @@ router.get("/logout", (req, res) => {
   req.logout();
   res.redirect(CLIENT_URL);
 });
+
 //google login can use get method
 //if you using username and password, you can use post method
 router.get("/google", passport.authenticate("google", { scope: ["profile"] }));
@@ -31,6 +32,17 @@ router.get("/google", passport.authenticate("google", { scope: ["profile"] }));
 router.get(
   "/google/callback",
   passport.authenticate("google", {
+    successRedirect: CLIENT_URL,
+    failureRedirect: "/login/failed",
+  })
+);
+
+//github login
+router.get("/github", passport.authenticate("github", { scope: ["profile"] }));
+
+router.get(
+  "/github/callback",
+  passport.authenticate("github", {
     successRedirect: CLIENT_URL,
     failureRedirect: "/login/failed",
   })

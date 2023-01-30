@@ -7,6 +7,7 @@ const colors = require("colors");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const GitHubStrategy = require("passport-github2");
 const User = require("./models/User");
 const authRoute = require("./routes/auth");
 connectDB();
@@ -23,11 +24,13 @@ app.use(passport.session());
 
 app.use(
   cors({
-    option: "http://localhost:3000",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
 app.use("/auth", authRoute);
+
+//google strategy
 passport.use(
   new GoogleStrategy(
     {
@@ -42,6 +45,20 @@ passport.use(
       //   avatar: profile.photo[0],
       // }
       // User.create({})
+      done(null, profile);
+    }
+  )
+);
+
+// github strategy
+passport.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+      callbackURL: "/auth/github/callback",
+    },
+    function (accessToken, refreshToken, profile, done) {
       done(null, profile);
     }
   )
