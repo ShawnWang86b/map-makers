@@ -10,35 +10,83 @@ import {
 import Card from "../components/Card";
 import { posts } from "../data";
 import { Search2Icon } from "@chakra-ui/icons";
-import {
-  GoogleMap,
-  MarkerF,
-  useJsApiLoader,
-  Autocomplete,
-} from "@react-google-maps/api";
-import { useState } from "react";
+import { GoogleMap, MarkerF, useLoadScript } from "@react-google-maps/api";
+import usePlacesAutocomplete, {
+  getGeocode,
+  getLatLng,
+} from "use-places-autocomplete";
+import { useMemo, useState } from "react";
 
 const Home = () => {
-  const [map, setMap] = useState();
-  const handleClickModal = () => {
-    alert("123");
-  };
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
+  const [libraries] = useState(["places"]);
+  const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries: ["places"],
+    libraries,
   });
+  const center = useMemo(() => ({ lat: -37.8550658, lng: 145.1542159 }), []);
+  if (!isLoaded) return <div>Loading</div>;
 
-  if (!isLoaded) return <SkeletonText />;
+  const PlacesAutoComplete = () => {
+    const {
+      ready,
+      value,
+      setValue,
+      suggestions: { status, data },
+      clearSuggestions,
+    } = usePlacesAutocomplete({
+      requestOptions: {
+        componentRestrictions: {
+          country: "au",
+        },
+      },
+      debounce: 300,
+    });
 
-  const center = {
-    lat: -37.840935,
-    lng: 144.946457,
+    const handleSelect =
+      ({ description }) =>
+      () => {
+        // When user selects a place, we can replace the keyword without request data from API
+        // by setting the second parameter to "false"
+        setValue(description, false);
+        clearSuggestions();
+
+        // Get latitude and longitude via utility functions
+        getGeocode({ address: description }).then((results) => {
+          const { lat, lng } = getLatLng(results[0]);
+          console.log("📍 Coordinates: ", { lat, lng });
+        });
+      };
+
+    const renderSuggestions = () =>
+      data.map((suggestion) => {
+        const {
+          place_id,
+          structured_formatting: { main_text, secondary_text },
+        } = suggestion;
+
+        return (
+          <li key={place_id} onClick={handleSelect(suggestion)}>
+            <strong>{main_text}</strong> <small>{secondary_text}</small>
+          </li>
+        );
+      });
+
+    return (
+      <>
+        {console.log(data)}
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          disabled={!ready}
+          placeholder="Search Address"
+        />
+        <Box>{status === "OK" && <ul>{renderSuggestions()}</ul>}</Box>
+      </>
+    );
   };
 
   return (
     <Container display="flex" direction="column" maxWidth="100%">
-      {/* restrictions={{ country: "Australia" }} */}
       <Flex
         direction="column"
         justifyContent="space-between"
@@ -58,23 +106,19 @@ const Home = () => {
         borderColor="teal.600"
         borderRadius="lg"
       >
-        {/* Google Map */}
+        <PlacesAutoComplete />
         <GoogleMap
-          mapContainerStyle={{ width: "100%", height: "100%" }}
-          center={center}
           zoom={10}
+          center={center}
+          mapContainerStyle={{ width: "100%", height: "100%" }}
           options={{
-            //zoomControl: false,
+            zoomControl: false,
             streetViewControl: false,
             mapTypeControl: false,
             fullscreenControl: false,
           }}
-          // onLoad={(map) => setMap(map)}
         >
-          <MarkerF
-            position={{ lat: -37.840935, lng: 144.946457 }}
-            onClick={() => handleClickModal()}
-          />
+          <MarkerF position={center} />
         </GoogleMap>
       </Box>
     </Container>
