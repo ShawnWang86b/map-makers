@@ -8,7 +8,7 @@ const passport = require("passport");
 const cookieSession = require("cookie-session");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const GitHubStrategy = require("passport-github2");
-const User = require("./models/User");
+const User = require("./models/UserModel");
 const authRoute = require("./routes/auth");
 connectDB();
 app.use(
