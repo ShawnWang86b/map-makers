@@ -1,15 +1,21 @@
-const mongoose = require("mongoose");
+import { Schema } from "mongoose";
 
-const petOwnerSchema = new mongoose.Schema(
+const petOwnerSchema = new Schema(
   {
-    googleId: { type: String },
-    email: { type: String, unique: true, required: true },
-    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    userName: { type: String },
     password: { type: String, required: true },
     avatar: {
       type: String,
       default:
         "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",
+    },
+    phone: { type: String },
+    roles: {
+      type: [String],
+      default: ["PetOwner"],
     },
     isActive: { type: Boolean, default: true },
   },
@@ -17,5 +23,13 @@ const petOwnerSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+petOwnerSchema.pre("save", function (next) {
+  if (!this.userName) {
+    this.userName = this.get("firstName");
+  }
+
+  next();
+});
 
 module.exports = mongoose.model("PetOwner", petOwnerSchema);
