@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FormControl,
@@ -9,23 +9,21 @@ import {
   FormErrorMessage,
   Button,
   Box,
-  Text,
-  Flex,
+  useToast,
 } from "@chakra-ui/react";
 import { Formik, Field, Form } from "formik";
-import { useDispatch } from "react-redux";
-import { setCredential } from "../../store/reducer/authSlice";
 import { useRegisterMutation } from "../../redux/authApi";
-import SignUpSchema from "./SignUpSchema";
+import SignUpValidator from "./SignUpValidator";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [register, { isLoading }] = useRegisterMutation();
+  const toast = useToast();
 
   if (isLoading) return <div>Loading</div>;
+
   return (
     <Formik
       initialValues={{
@@ -37,24 +35,51 @@ const SignUp = () => {
         phone: "",
         avatar: "",
       }}
-      validationSchema={SignUpSchema}
-      onSubmit={(
-        { firstName, lastName, userName, email, password, phone, avatar },
+      validationSchema={SignUpValidator}
+      onSubmit={async (
+        { firstName, lastName, userName, email, password, phone },
         actions
       ) => {
-        //const accessToken =
-        register({
-          firstName,
-          lastName,
-          userName,
-          email,
-          password,
-          phone,
-          avatar,
-        }).unwrap();
-        //dispatch(setCredential({ accessToken }));
-        navigate("/chat");
-        actions.setSubmitting(false);
+        try {
+          const { signUpUser } = await register({
+            firstName,
+            lastName,
+            userName,
+            email,
+            password,
+            phone,
+          }).unwrap();
+          console.log(signUpUser);
+          toast({
+            title: "Account created.",
+            description: "We've created your account for you.",
+            status: "success",
+            duration: 9000,
+            isClosable: true,
+            containerStyle: {
+              fontSize: "20px",
+              width: "480px",
+              padding: "10px",
+            },
+          });
+          //localStorage.setItem("PetUserInfo", JSON.stringify(signUpUser));
+          navigate("/chat");
+          actions.setSubmitting(false);
+        } catch (err) {
+          toast({
+            title: "Register failure.",
+            description: `We cannot create account. Reason: ${err.data?.message}`,
+            status: "error",
+            duration: 9000,
+            isClosable: true,
+            containerStyle: {
+              fontSize: "20px",
+              width: "480px",
+              padding: "10px",
+            },
+          });
+          actions.setSubmitting(false);
+        }
       }}
     >
       {(props) => (
@@ -173,23 +198,6 @@ const SignUp = () => {
                     height="50px"
                   />
                   <FormErrorMessage>{form.errors.phone}</FormErrorMessage>
-                </FormControl>
-              )}
-            </Field>
-            <Field name="avatar">
-              {({ field, form }) => (
-                <FormControl
-                  isInvalid={form.errors.avatar && form.touched.avatar}
-                >
-                  <FormLabel htmlFor="avatar"></FormLabel>
-                  <Input
-                    {...field}
-                    type="file"
-                    id="avatar"
-                    placeholder="Avatar"
-                    height="50px"
-                  />
-                  <FormErrorMessage>{form.errors.avatar}</FormErrorMessage>
                 </FormControl>
               )}
             </Field>
